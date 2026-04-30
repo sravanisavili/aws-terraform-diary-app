@@ -5,9 +5,9 @@ resource "aws_security_group" "personal-diary-alb-sg" {
   description = "alb SG for perosnl diary"
   vpc_id      = "aws_vpc.main.id"
   ingress {
-    protocol = TCP
-    to_port = 3000
-    cidr_blocks = ["0.0.0.0/0"]
+    protocol = local.tcp_protocol
+    to_port = local.tg_port
+    cidr_blocks = local.all_ips
   }
 
     tags = {
@@ -20,9 +20,9 @@ resource "aws_security_group" "personal-diary-ec2-sg" {
   description = "SG for perosnl diary"
   vpc_id      = "aws_vpc.main.id"
   ingress {
-    protocol = TCP
-    to_port = 80
-    cidr_blocks = ["0.0.0.0/0"]
+    protocol =  local.tcp_protocol
+    to_port =   local.tcp_port
+    cidr_blocks = local.all_ips 
   }
 
     tags = {
@@ -32,7 +32,7 @@ resource "aws_security_group" "personal-diary-ec2-sg" {
 #key pair for ec2
 resource "awscc_ec2_key_pair" "diary-key" {
   key_name            = "diary-key"
-  public_key_material = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 email@example.com"
+  #public_key_material = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 email@example.com"
 
   tags = [{
     key   = "Modified By"
@@ -54,8 +54,8 @@ resource "aws_launch_template" "peronal-diary-launch-template" {
 # target group
 resource "aws_lb_target_group" "tg-peronal_diary" {
   name     = "tg-peronal_diary"
-  port     = 3000
-  protocol = "HTTP"
+  port     = local.tg_port
+  protocol = local.http_protocol
   vpc_id   = aws_vpc.example.id
 
   # Optional: Health Check Configuration
@@ -79,8 +79,8 @@ resource "aws_lb" "alb-peronal-diary" {
 # alb - listener
 resource "aws_lb_listener" "alb-listener-personal-diary" {
   load_balancer_arn = alb-peronal-diary.arn
-  port              = "80"
-  protocol          = "HTTP"
+  port              = local.tcp_port
+  protocol          = local.http_protocol
 
   default_action {
     type             = "forward"
@@ -91,8 +91,13 @@ resource "aws_lb_listener" "alb-listener-personal-diary" {
 resource "aws_autoscaling_group" "asg-perona-diary" {
   name_prefix = "asg-perona-diary"
 
-  launch_configuration = peronal-diary-launch-template.name
+  #launch_configuration = peronal-diary-launch-template.name
   availability_zones   = [data.aws_availability_zones.available.names[0]]
+  target_group_arns = [tg-peronal_diary.arn]
+  launch_template {
+    id      = peronal-diary-launch-template.id
+    version = "$Latest"
+  }
 
   min_size = 0
   max_size = 3
