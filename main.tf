@@ -50,7 +50,7 @@ resource "aws_launch_template" "peronal-diary-launch-template" {
   key_name = "id.awscc_ec2_key_pair"
   vpc_security_group_ids = ["vpc-02216d73455e25736"]
 
-  user_data = filebase64("app.js")
+  user_data = filebase64("setup.sh")
 
   lifecycle {
     create_before_destroy = true

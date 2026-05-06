@@ -16,8 +16,8 @@ npm init -y
 # Install Express
 npm install express
 
-# Create app.js
-cat <<EOF > app.js
+# Create setup.sh
+cat <<EOF > setup.sh
 const express = require("express");
 const app = express();
 
@@ -66,4 +66,4 @@ app.listen(PORT, "0.0.0.0", () => {
 EOF
 
 # Run app in background
-nohup node app.js > app.log 2>&1 &
+nohup node setup.sh > app.log 2>&1 &
