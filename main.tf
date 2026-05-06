@@ -107,7 +107,7 @@ resource "aws_autoscaling_group" "asg-perona-diary" {
   name_prefix = "asg-perona-diary"
 
   #launch_configuration = peronal-diary-launch-template.name
-  availability_zones   = [data.aws_availability_zones.names[0]]
+  #availability_zones   = [data.aws_availability_zones.names[0]]
   target_group_arns = aws_lb_target_group.tg-peronal-diary.id
   launch_template {
     id      = aws_launch_template.peronal-diary-launch-template.id
