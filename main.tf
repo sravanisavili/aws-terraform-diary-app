@@ -88,8 +88,8 @@ resource "aws_lb" "alb-peronal-diary" {
   name               = "alb-peronal-diary"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = aws_security_group.personal_diary_alb_sg.id
-  subnets            = aws_default_subnet.default_az1.arn
+  security_groups    = aws_security_group.personal_diary_alb_sg.arn
+  subnets            = aws_default_subnet.default_az1.id
 }
 # alb - listener
 resource "aws_lb_listener" "alb-listener-personal-diary" {
@@ -108,7 +108,7 @@ resource "aws_autoscaling_group" "asg-perona-diary" {
 
   #launch_configuration = peronal-diary-launch-template.name
   #availability_zones   = [data.aws_availability_zones.names[0]]
-  target_group_arns = aws_lb_target_group.tg-peronal-diary.id
+  target_group_arn = aws_lb_target_group.tg-peronal-diary.arn
   launch_template {
     id      = aws_launch_template.peronal-diary-launch-template.id
     version = "$Latest"
