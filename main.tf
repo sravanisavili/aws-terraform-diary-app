@@ -1,35 +1,49 @@
-
+data "aws_vpc" "default" {
+  default = true
+}
 #security group for load balancer
 resource "aws_security_group" "personal_diary_alb_sg" {
-  name        = "personal_diary_alb_sg"
-  description = "alb SG for perosnl diary"
-  vpc_id      = "aws_vpc.main.id"
+  name        = "personal-diary-alb-sg"
+  description = "ALB SG for personal diary"
+  vpc_id      = data.aws_vpc.default.id   
+
   ingress {
-    protocol = local.tcp_protocol
-    to_port = local.tg_port
-    from_port = local.tg_from_port
-    cidr_blocks = local.all_ips
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["0.0.0.0/0"]   # Internet → ALB
   }
 
-    tags = {
-        Name = "personal_diary_alb_sg"
-    }
+  egress {
+    protocol    = "-1"
+    from_port   = 0
+    to_port     = 0
+
+    # ALB can talk to anywhere (needed for EC2)
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 # security group for ec2 
-resource "aws_security_group" "personal-diary-ec2-sg" {
+resource "aws_security_group" "personal_diary_ec2_sg" {
   name        = "personal-diary-ec2-sg"
-  description = "SG for perosnl diary"
-  vpc_id      = "aws_vpc.main.id"
+  description = "SG for personal diary EC2"
+  vpc_id      = data.aws_vpc.default.id   
+
   ingress {
-    protocol =  local.tcp_protocol
-    to_port =   local.tcp_port
-    from_port = local.tg_from_port
-    cidr_blocks = local.all_ips 
+    protocol    = local.tcp_protocol
+    from_port   = local.tg_from_port   # usually 3000
+    to_port     = local.tg_port        # usually 3000
+
+    
+    security_groups = [aws_security_group.personal_diary_alb_sg.id]
   }
 
-    tags = {
-        Name = "personal-diary-ec2-sg"
-    }
+  egress {
+    protocol    = "-1"
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 #key pair for ec2
 resource "awscc_ec2_key_pair" "diary-key" {
@@ -48,7 +62,7 @@ resource "aws_launch_template" "peronal-diary-launch-template" {
   image_id = var.instance
   instance_type = var.instance-type
   key_name = "id.awscc_ec2_key_pair"
-  vpc_security_group_ids = ["vpc-02216d73455e25736"]
+  vpc_security_group_ids = [aws_security_group.personal_diary_ec2_sg.id]
 
   user_data = filebase64("setup.sh")
 
