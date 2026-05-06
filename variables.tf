@@ -6,6 +6,10 @@ variable "instance-type" {
    default =   "t3.micro"
 }
 
+variable "region" {
+   default =   "us-east-1"
+}
+
 locals {
   tcp_port    = 80
   tg_port     = 3000

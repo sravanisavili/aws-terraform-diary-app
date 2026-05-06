@@ -58,8 +58,8 @@ resource "aws_launch_template" "peronal-diary-launch-template" {
 }
 
 # target group
-resource "aws_lb_target_group" "tg_peronal_diary" {
-  name     = "tg_peronal_diary"
+resource "aws_lb_target_group" "tg-peronal-diary" {
+  name     = "tg-peronal-diary"
   port     = local.tg_port
   protocol = local.http_protocol
   vpc_id   = "vpc-02216d73455e25736"
@@ -73,14 +73,23 @@ resource "aws_lb_target_group" "tg_peronal_diary" {
   tags = {
     Name = "tg-peronal_diary"
   }
-}   
+}  
+
+#subnet
+resource "aws_default_subnet" "default_az1" {
+  availability_zone = var.region
+
+  tags = {
+    Name = "Default subnet for var.region"
+  }
+}
 # application load balancer
 resource "aws_lb" "alb-peronal-diary" {
   name               = "alb-peronal-diary"
   internal           = false
   load_balancer_type = "application"
   security_groups    = aws_security_group.personal_diary_alb_sg.id
-  subnets            = aws_subnet.public.*.arn
+  subnets            = aws_default_subnet.default_az1.arn
 }
 # alb - listener
 resource "aws_lb_listener" "alb-listener-personal-diary" {
@@ -90,7 +99,7 @@ resource "aws_lb_listener" "alb-listener-personal-diary" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.tg_peronal_diary.arn
+    target_group_arn = aws_lb_target_group.tg-peronal-diary.arn
   }
 }
 #Auto scaling group
@@ -99,7 +108,7 @@ resource "aws_autoscaling_group" "asg-perona-diary" {
 
   #launch_configuration = peronal-diary-launch-template.name
   availability_zones   = [data.aws_availability_zones.names[0]]
-  target_group_arns = aws_lb_target_group.tg_peronal_diary.id
+  target_group_arns = aws_lb_target_group.tg-peronal-diary.id
   launch_template {
     id      = aws_launch_template.peronal-diary-launch-template.id
     version = "$Latest"
