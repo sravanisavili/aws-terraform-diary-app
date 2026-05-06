@@ -1,7 +1,7 @@
 
 #security group for load balancer
-resource "aws_security_group" "personal-diary-alb-sg" {
-  name        = "personal-diary-alb-sg"
+resource "aws_security_group" "personal_diary_alb_sg" {
+  name        = "personal_diary_alb_sg"
   description = "alb SG for perosnl diary"
   vpc_id      = "aws_vpc.main.id"
   ingress {
@@ -12,7 +12,7 @@ resource "aws_security_group" "personal-diary-alb-sg" {
   }
 
     tags = {
-        Name = "personal-diary-alb-sg"
+        Name = "personal_diary_alb_sg"
     }
 }
 # security group for ec2 
@@ -79,18 +79,18 @@ resource "aws_lb" "alb-peronal-diary" {
   name               = "alb-peronal-diary"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = aws_personal-diary-alb-sg.id
-  subnets            = aws_subnet.public.*.id
+  security_groups    = aws_security_group.personal_diary_alb_sg.id
+  subnets            = aws_subnet.public.*.arn
 }
 # alb - listener
 resource "aws_lb_listener" "alb-listener-personal-diary" {
-  load_balancer_arn = alb-peronal-diary.arn
+  load_balancer_arn = aws_lb.alb-peronal-diary.arn
   port              = local.tcp_port
   protocol          = local.http_protocol
 
   default_action {
     type             = "forward"
-    target_group_arn = tg-peronal_diary.arn
+    target_group_arn = aws_lb_target_group.tg_peronal_diary.arn
   }
 }
 #Auto scaling group
@@ -98,10 +98,10 @@ resource "aws_autoscaling_group" "asg-perona-diary" {
   name_prefix = "asg-perona-diary"
 
   #launch_configuration = peronal-diary-launch-template.name
-  availability_zones   = [data.aws_availability_zones.available.names[0]]
-  target_group_arns = [tg-peronal_diary.arn]
+  availability_zones   = [data.aws_availability_zones.names[0]]
+  target_group_arns = aws_lb_target_group.tg_peronal_diary.id
   launch_template {
-    id      = peronal-diary-launch-template.id
+    id      = aws_launch_template.peronal-diary-launch-template.id
     version = "$Latest"
   }
 
