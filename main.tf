@@ -7,6 +7,7 @@ resource "aws_security_group" "personal-diary-alb-sg" {
   ingress {
     protocol = local.tcp_protocol
     to_port = local.tg_port
+    from_port = local.tg_from_port
     cidr_blocks = local.all_ips
   }
 
@@ -22,6 +23,7 @@ resource "aws_security_group" "personal-diary-ec2-sg" {
   ingress {
     protocol =  local.tcp_protocol
     to_port =   local.tcp_port
+    from_port = local.tg_from_port
     cidr_blocks = local.all_ips 
   }
 
@@ -46,9 +48,13 @@ resource "aws_launch_template" "peronal-diary-launch-template" {
   image_id = var.instance
   instance_type = var.instance-type
   key_name = "id.awscc_ec2_key_pair"
-  vpc_security_group_ids = "aws.personal-diary-ec2-sg"
+  vpc_security_group_ids = ["vpc-02216d73455e25736"]
 
   user_data = filebase64("app.js")
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # target group
@@ -56,7 +62,7 @@ resource "aws_lb_target_group" "tg-peronal_diary" {
   name     = "tg-peronal_diary"
   port     = local.tg_port
   protocol = local.http_protocol
-  vpc_id   = aws_vpc.example.id
+  vpc_id   = aws.peronal-diary-launch-template.id
 
   # Optional: Health Check Configuration
   health_check {

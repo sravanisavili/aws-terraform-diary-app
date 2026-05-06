@@ -9,6 +9,7 @@ variable "instance-type" {
 locals {
   tcp_port    = 80
   tg_port     = 3000
+  tg_from_port = 80
   tcp_protocol = "tcp"
   http_protocol = "HTTP"
   all_ips      = ["0.0.0.0/0"]
