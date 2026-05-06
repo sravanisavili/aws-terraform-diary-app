@@ -58,11 +58,11 @@ resource "aws_launch_template" "peronal-diary-launch-template" {
 }
 
 # target group
-resource "aws_lb_target_group" "tg-peronal_diary" {
-  name     = "tg-peronal_diary"
+resource "aws_lb_target_group" "tg_peronal_diary" {
+  name     = "tg_peronal_diary"
   port     = local.tg_port
   protocol = local.http_protocol
-  vpc_id   = aws.peronal-diary-launch-template.id
+  vpc_id   = "vpc-02216d73455e25736"
 
   # Optional: Health Check Configuration
   health_check {
@@ -79,7 +79,7 @@ resource "aws_lb" "alb-peronal-diary" {
   name               = "alb-peronal-diary"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [personal-diary-alb-sg.id]
+  security_groups    = aws_personal-diary-alb-sg.id
   subnets            = aws_subnet.public.*.id
 }
 # alb - listener
