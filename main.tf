@@ -59,7 +59,7 @@ resource "aws_launch_template" "peronal-diary-launch-template" {
   name = "peronal-diary-launch-template"
   image_id = data.aws_ami.ubuntu.id
   instance_type = var.instance-type
-  key_name = "id.awscc_ec2_key_pair"
+  key_name = awscc_ec2_key_pair.diary-key.key_name
   vpc_security_group_ids = [aws_security_group.personal_diary_ec2_sg.id]
 
   user_data = filebase64("setup.sh")
@@ -125,10 +125,14 @@ resource "aws_lb_listener" "alb-listener-personal-diary" {
 #Auto scaling group
 resource "aws_autoscaling_group" "asg-perona-diary" {
   name_prefix = "asg-perona-diary"
+  vpc_zone_identifier = [
+  aws_default_subnet.default_az1.id,
+  aws_default_subnet.default_az2.id
+]
 
   #launch_configuration = peronal-diary-launch-template.name
   #availability_zones   = [data.aws_availability_zones.names[0]]
-  #target_group_id = aws_lb_target_group.tg-peronal-diary.id
+  target_group_arns = [aws_lb_target_group.tg-peronal-diary.arn]
   launch_template {
     id      = aws_launch_template.peronal-diary-launch-template.id
     version = "$Latest"
