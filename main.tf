@@ -1,4 +1,10 @@
-
+terraform {
+  backend "s3" {
+    bucket = "my-terraform-state-bucket-123"
+    key    = "diary-app/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
 #security group for load balancer
 resource "aws_security_group" "personal_diary_alb_sg" {
   name        = "personal-diary-alb-sg"
