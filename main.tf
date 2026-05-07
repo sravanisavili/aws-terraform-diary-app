@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket = "my-terraform-state-bucket-123"
+    bucket = "diary-app-tf-state-67890"
     key    = "diary-app/terraform.tfstate"
     region = "us-east-1"
   }
