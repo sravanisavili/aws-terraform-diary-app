@@ -1,6 +1,4 @@
-data "aws_vpc" "default" {
-  default = true
-}
+
 #security group for load balancer
 resource "aws_security_group" "personal_diary_alb_sg" {
   name        = "personal-diary-alb-sg"
@@ -31,7 +29,7 @@ resource "aws_security_group" "personal_diary_ec2_sg" {
 
   ingress {
     protocol    = local.tcp_protocol
-    from_port   = local.tg_from_port   # usually 3000
+    from_port   = local.tg_port    # usually 3000
     to_port     = local.tg_port        # usually 3000
 
     
@@ -59,7 +57,7 @@ resource "awscc_ec2_key_pair" "diary-key" {
 #launch template
 resource "aws_launch_template" "peronal-diary-launch-template" {
   name = "peronal-diary-launch-template"
-  image_id = var.instance
+  image_id = data.aws_ami.ubuntu.id
   instance_type = var.instance-type
   key_name = "id.awscc_ec2_key_pair"
   vpc_security_group_ids = [aws_security_group.personal_diary_ec2_sg.id]
@@ -91,7 +89,15 @@ resource "aws_lb_target_group" "tg-peronal-diary" {
 
 #subnet
 resource "aws_default_subnet" "default_az1" {
-  availability_zone = var.region
+  availability_zone = "us-east-1a"
+
+  tags = {
+    Name = "Default subnet for var.region"
+  }
+}
+
+resource "aws_default_subnet" "default_az2" {
+  availability_zone = "us-east-1b"
 
   tags = {
     Name = "Default subnet for var.region"
@@ -103,7 +109,7 @@ resource "aws_lb" "alb-peronal-diary" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.personal_diary_alb_sg.id]
-  subnets            = [aws_default_subnet.default_az1.id]
+  subnets            = [aws_default_subnet.default_az1.id,aws_default_subnet.default_az2.id]
 }
 # alb - listener
 resource "aws_lb_listener" "alb-listener-personal-diary" {

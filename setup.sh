@@ -16,8 +16,8 @@ npm init -y
 # Install Express
 npm install express
 
-# Create setup.sh
-cat <<EOF > setup.sh
+# Create app.js
+cat <<EOF > app.js
 const express = require("express");
 const app = express();
 
@@ -28,42 +28,31 @@ app.use(express.urlencoded({ extended: true }));
 let diaryEntries = [];
 
 app.get("/", (req, res) => {
-  let entriesHtml = diaryEntries
-    .map(entry => `<li>\${entry}</li>`)
-    .join("");
+  let entriesHtml = diaryEntries.map(e => \`<li>\${e}</li>\`).join("");
 
-  res.send(`
+  res.send(\`
     <html>
-      <head>
-        <title>Personal Diary</title>
-      </head>
-      <body style="font-family: Arial; padding: 20px;">
-        <h1>📖 My Personal Diary</h1>
-
+      <body>
+        <h1>Diary</h1>
         <form method="POST" action="/add">
-          <textarea name="entry" rows="4" cols="50" placeholder="Write your thoughts..." required></textarea><br><br>
-          <button type="submit">Add Entry</button>
+          <textarea name="entry"></textarea>
+          <button type="submit">Add</button>
         </form>
-
-        <h2>Entries:</h2>
-        <ul>
-          \${entriesHtml}
-        </ul>
+        <ul>\${entriesHtml}</ul>
       </body>
     </html>
-  `);
+  \`);
 });
 
 app.post("/add", (req, res) => {
-  const entry = req.body.entry;
-  diaryEntries.push(entry);
+  diaryEntries.push(req.body.entry);
   res.redirect("/");
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Diary app running on port \${PORT}`);
+  console.log("Running on port " + PORT);
 });
 EOF
 
-# Run app in background
-nohup node setup.sh > app.log 2>&1 &
+# Run app
+nohup node app.js > app.log 2>&1 &
